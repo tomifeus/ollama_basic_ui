@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="top-controls">
+            <div class="model-selector">
+                <button id="modelSelect" class="control-button">
+                    <img src="images/powerllama.png" alt="Model" class="model-icon" />
+                    <span id="currentModel">Loading models...</span>
+                    <span class="arrow">▼</span>
+                </button>
+                <div id="modelDropdown" class="dropdown-content">
+                    <!-- Models will be populated by JavaScript -->
+                </div>
+            </div>
+            <button id="stopButton" class="control-button" disabled>
+                <span class="stop-icon">⏹</span>
+                Stop
+            </button>
+            <button id="clearButton" class="control-button">
+                <span class="clear-icon">🗑️</span>
+                Clear
+            </button>
+            <button id="showHistoryButton" class="control-button">
+                <span class="history-icon">📜</span>
+                Show History
+            </button>
+            <button id="themeToggle" class="control-button">🌞 Light Mode</button>
+        </div>
+        <div id="chatbox"></div>
+        <div class="input-container">
+            <textarea id="userInput" placeholder="Ask a question... (Press Enter to send, Shift+Enter for new line)" rows="3"></textarea>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
