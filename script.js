@@ -14,6 +14,8 @@ let currentController = null;
 let conversationHistory = [];
 let isShowingHistory = false;
 let lastChatContent = '';
+let lastTimestamp = null;
+let lastTokenCount = 0;
 
 // Add temperature control
 let currentTemperature = parseFloat(localStorage.getItem('temperature')) || 0.7;
@@ -289,6 +291,8 @@ async function sendMessage() {
     userInput.value = '';
     stopButton.disabled = false;
     tokensPerSecondElement.textContent = '0';
+    lastTimestamp = null;
+    lastTokenCount = 0;
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -350,14 +354,16 @@ async function sendMessage() {
                 const data = JSON.parse(text);
                 accumulatedText += data.response;
                 
-                // Debug log the response data
-                console.log('Ollama API Response:', data);
-                
-                // Calculate and display tokens per second
-                if (data.timings) {
-                    console.log('Timings data:', data.timings);
-                    const tokensPerSecond = (data.timings.tokens_per_second || 0).toFixed(1);
-                    tokensPerSecondElement.textContent = tokensPerSecond;
+                // Calculate tokens per second using timestamps
+                if (data.created_at) {
+                    const currentTime = new Date(data.created_at).getTime();
+                    if (lastTimestamp) {
+                        const timeDiff = (currentTime - lastTimestamp) / 1000; // Convert to seconds
+                        const tokenDiff = data.response.length / 4; // Approximate token count (4 chars per token)
+                        const tokensPerSecond = (tokenDiff / timeDiff).toFixed(1);
+                        tokensPerSecondElement.textContent = tokensPerSecond;
+                    }
+                    lastTimestamp = currentTime;
                 }
                 
                 // Convert markdown to HTML with sanitization
