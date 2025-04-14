@@ -351,10 +351,8 @@ async function sendMessage() {
                 accumulatedText += data.response;
                 
                 // Calculate and display tokens per second
-                if (data.eval_count !== undefined && data.eval_duration !== undefined) {
-                    // Convert nanoseconds to seconds and calculate tokens per second
-                    const durationInSeconds = data.eval_duration / 1000000000;
-                    const tokensPerSecond = (data.eval_count / durationInSeconds).toFixed(1);
+                if (data.timings) {
+                    const tokensPerSecond = (data.timings.tokens_per_second || 0).toFixed(1);
                     tokensPerSecondElement.textContent = tokensPerSecond;
                 }
                 
