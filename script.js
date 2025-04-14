@@ -19,6 +19,8 @@ let lastTokenCount = 0;
 let tokenRates = []; // Array to store recent token rates
 let allTokenRates = []; // Array to store all token rates for overall average
 const MAX_RATES = 5; // Number of rates to average
+let lastUpdateTime = 0; // Track the last update time
+const UPDATE_INTERVAL = 500; // Minimum time between updates in milliseconds (2 updates per second)
 
 // Add temperature control
 let currentTemperature = parseFloat(localStorage.getItem('temperature')) || 0.7;
@@ -298,6 +300,7 @@ async function sendMessage() {
     lastTokenCount = 0;
     tokenRates = []; // Reset token rates array
     allTokenRates = []; // Reset overall token rates array
+    lastUpdateTime = 0; // Reset last update time
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -382,9 +385,14 @@ async function sendMessage() {
                             tokenRates.shift(); // Remove oldest rate
                         }
                         
-                        // Calculate and display average rate
-                        const averageRate = tokenRates.reduce((a, b) => a + b, 0) / tokenRates.length;
-                        tokensPerSecondElement.textContent = averageRate.toFixed(1);
+                        // Throttle updates to max 2 times per second
+                        const now = Date.now();
+                        if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+                            // Calculate and display average rate
+                            const averageRate = tokenRates.reduce((a, b) => a + b, 0) / tokenRates.length;
+                            tokensPerSecondElement.textContent = averageRate.toFixed(1);
+                            lastUpdateTime = now;
+                        }
                     }
                     lastTimestamp = currentTime;
                 }
