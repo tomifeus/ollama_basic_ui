@@ -16,6 +16,8 @@ let isShowingHistory = false;
 let lastChatContent = '';
 let lastTimestamp = null;
 let lastTokenCount = 0;
+let tokenRates = []; // Array to store recent token rates
+const MAX_RATES = 5; // Number of rates to average
 
 // Add temperature control
 let currentTemperature = parseFloat(localStorage.getItem('temperature')) || 0.7;
@@ -293,6 +295,7 @@ async function sendMessage() {
     tokensPerSecondElement.textContent = '0';
     lastTimestamp = null;
     lastTokenCount = 0;
+    tokenRates = []; // Reset token rates array
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -360,8 +363,17 @@ async function sendMessage() {
                     if (lastTimestamp) {
                         const timeDiff = (currentTime - lastTimestamp) / 1000; // Convert to seconds
                         const tokenDiff = data.response.length / 4; // Approximate token count (4 chars per token)
-                        const tokensPerSecond = (tokenDiff / timeDiff).toFixed(1);
-                        tokensPerSecondElement.textContent = tokensPerSecond;
+                        const currentRate = tokenDiff / timeDiff;
+                        
+                        // Add current rate to the array
+                        tokenRates.push(currentRate);
+                        if (tokenRates.length > MAX_RATES) {
+                            tokenRates.shift(); // Remove oldest rate
+                        }
+                        
+                        // Calculate and display average rate
+                        const averageRate = tokenRates.reduce((a, b) => a + b, 0) / tokenRates.length;
+                        tokensPerSecondElement.textContent = averageRate.toFixed(1);
                     }
                     lastTimestamp = currentTime;
                 }
