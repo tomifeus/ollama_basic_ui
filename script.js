@@ -350,8 +350,12 @@ async function sendMessage() {
                 const data = JSON.parse(text);
                 accumulatedText += data.response;
                 
+                // Debug log the response data
+                console.log('Ollama API Response:', data);
+                
                 // Calculate and display tokens per second
                 if (data.timings) {
+                    console.log('Timings data:', data.timings);
                     const tokensPerSecond = (data.timings.tokens_per_second || 0).toFixed(1);
                     tokensPerSecondElement.textContent = tokensPerSecond;
                 }
