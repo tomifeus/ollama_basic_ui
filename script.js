@@ -17,6 +17,7 @@ let lastChatContent = '';
 let lastTimestamp = null;
 let lastTokenCount = 0;
 let tokenRates = []; // Array to store recent token rates
+let allTokenRates = []; // Array to store all token rates for overall average
 const MAX_RATES = 5; // Number of rates to average
 
 // Add temperature control
@@ -296,6 +297,7 @@ async function sendMessage() {
     lastTimestamp = null;
     lastTokenCount = 0;
     tokenRates = []; // Reset token rates array
+    allTokenRates = []; // Reset overall token rates array
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -350,6 +352,13 @@ async function sendMessage() {
                     // Add assistant response to conversation history
                     conversationHistory.push({ role: 'assistant', content: aiContent.innerHTML });
                     saveChatHistory();
+                    
+                    // Calculate and display overall average tokens per second
+                    if (allTokenRates.length > 0) {
+                        const overallAverage = allTokenRates.reduce((a, b) => a + b, 0) / allTokenRates.length;
+                        tokensPerSecondElement.textContent = overallAverage.toFixed(1);
+                    }
+                    
                     break;
                 }
 
@@ -365,8 +374,10 @@ async function sendMessage() {
                         const tokenDiff = data.response.length / 4; // Approximate token count (4 chars per token)
                         const currentRate = tokenDiff / timeDiff;
                         
-                        // Add current rate to the array
+                        // Add current rate to the arrays
                         tokenRates.push(currentRate);
+                        allTokenRates.push(currentRate);
+                        
                         if (tokenRates.length > MAX_RATES) {
                             tokenRates.shift(); // Remove oldest rate
                         }
