@@ -7,6 +7,7 @@ const currentModelSpan = document.getElementById('currentModel');
 const stopButton = document.getElementById('stopButton');
 const clearButton = document.getElementById('clearButton');
 const showHistoryButton = document.getElementById('showHistoryButton');
+const tokensPerSecondElement = document.getElementById('tokensPerSecond');
 
 let currentModel = localStorage.getItem('currentModel') || 'gemma3:27b';
 let currentController = null;
@@ -287,6 +288,7 @@ async function sendMessage() {
     
     userInput.value = '';
     stopButton.disabled = false;
+    tokensPerSecondElement.textContent = '0';
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -347,6 +349,12 @@ async function sendMessage() {
                 const text = new TextDecoder('utf-8').decode(value);
                 const data = JSON.parse(text);
                 accumulatedText += data.response;
+                
+                // Calculate and display tokens per second
+                if (data.eval_count && data.eval_duration) {
+                    const tokensPerSecond = (data.eval_count / (data.eval_duration / 1000000000)).toFixed(1);
+                    tokensPerSecondElement.textContent = tokensPerSecond;
+                }
                 
                 // Convert markdown to HTML with sanitization
                 const htmlContent = DOMPurify.sanitize(marked.parse(accumulatedText, {
