@@ -24,6 +24,15 @@ npm install -g http-server
 http-server
 ```
 
+Using Docker:
+```bash
+# build docker container
+sudo docker build . -t python_httpd
+
+# start docker container
+sudo docker run --rm -it -p 4242:4242 python_httpd
+```
+
 # List of Ollama models
 
 https://ollama.com/search
