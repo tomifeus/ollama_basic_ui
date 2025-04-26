@@ -7,12 +7,20 @@ const currentModelSpan = document.getElementById('currentModel');
 const stopButton = document.getElementById('stopButton');
 const clearButton = document.getElementById('clearButton');
 const showHistoryButton = document.getElementById('showHistoryButton');
+const tokensPerSecondElement = document.getElementById('tokensPerSecond');
 
 let currentModel = localStorage.getItem('currentModel') || 'gemma3:27b';
 let currentController = null;
 let conversationHistory = [];
 let isShowingHistory = false;
 let lastChatContent = '';
+let lastTimestamp = null;
+let lastTokenCount = 0;
+let tokenRates = []; // Array to store recent token rates
+let allTokenRates = []; // Array to store all token rates for overall average
+const MAX_RATES = 5; // Number of rates to average
+let lastUpdateTime = 0; // Track the last update time
+const UPDATE_INTERVAL = 500; // Minimum time between updates in milliseconds (2 updates per second)
 
 // Add temperature control
 let currentTemperature = parseFloat(localStorage.getItem('temperature')) || 0.7;
@@ -287,6 +295,12 @@ async function sendMessage() {
     
     userInput.value = '';
     stopButton.disabled = false;
+    tokensPerSecondElement.textContent = '0';
+    lastTimestamp = null;
+    lastTokenCount = 0;
+    tokenRates = []; // Reset token rates array
+    allTokenRates = []; // Reset overall token rates array
+    lastUpdateTime = 0; // Reset last update time
 
     // Display user message
     const userMessageElement = document.createElement('p');
@@ -341,12 +355,47 @@ async function sendMessage() {
                     // Add assistant response to conversation history
                     conversationHistory.push({ role: 'assistant', content: aiContent.innerHTML });
                     saveChatHistory();
+                    
+                    // Calculate and display overall average tokens per second
+                    if (allTokenRates.length > 0) {
+                        const overallAverage = allTokenRates.reduce((a, b) => a + b, 0) / allTokenRates.length;
+                        tokensPerSecondElement.textContent = overallAverage.toFixed(1);
+                    }
+                    
                     break;
                 }
 
                 const text = new TextDecoder('utf-8').decode(value);
                 const data = JSON.parse(text);
                 accumulatedText += data.response;
+                
+                // Calculate tokens per second using timestamps
+                if (data.created_at) {
+                    const currentTime = new Date(data.created_at).getTime();
+                    if (lastTimestamp) {
+                        const timeDiff = (currentTime - lastTimestamp) / 1000; // Convert to seconds
+                        const tokenDiff = data.response.length / 4; // Approximate token count (4 chars per token)
+                        const currentRate = tokenDiff / timeDiff;
+                        
+                        // Add current rate to the arrays
+                        tokenRates.push(currentRate);
+                        allTokenRates.push(currentRate);
+                        
+                        if (tokenRates.length > MAX_RATES) {
+                            tokenRates.shift(); // Remove oldest rate
+                        }
+                        
+                        // Throttle updates to max 2 times per second
+                        const now = Date.now();
+                        if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+                            // Calculate and display average rate
+                            const averageRate = tokenRates.reduce((a, b) => a + b, 0) / tokenRates.length;
+                            tokensPerSecondElement.textContent = averageRate.toFixed(1);
+                            lastUpdateTime = now;
+                        }
+                    }
+                    lastTimestamp = currentTime;
+                }
                 
                 // Convert markdown to HTML with sanitization
                 const htmlContent = DOMPurify.sanitize(marked.parse(accumulatedText, {
