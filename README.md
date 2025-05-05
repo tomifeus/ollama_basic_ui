@@ -33,6 +33,21 @@ sudo docker build . -t python_httpd
 sudo docker run --rm -d -p 4242:4242 python_httpd
 ```
 
+# Running Ollama with Docker
+
+To run Ollama with the Gemma3 4B model using Docker:
+
+```bash
+# Pull and run Ollama container
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+
+# Pull the Gemma 3B model
+docker exec ollama ollama pull gemma3:4b
+
+# Run the model
+docker exec ollama ollama run gemma3:4b
+```
+
 # List of Ollama models
 
 https://ollama.com/search
